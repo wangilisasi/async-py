@@ -1,0 +1,19 @@
+# Pesapal API Configuration
+# Copy this file to .env and fill in your actual credentials
+
+# Pesapal Merchant Credentials
+PESAPAL_CONSUMER_KEY=your_consumer_key_here
+PESAPAL_CONSUMER_SECRET=your_consumer_secret_here
+
+# Environment (sandbox or production)
+PESAPAL_ENVIRONMENT=sandbox
+
+# Your application URLs
+APP_BASE_URL=http://localhost:8000
+
+# IPN ID (get this after registering your IPN URL)
+PESAPAL_IPN_ID=your-ipn-id-here
+
+# Optional: Custom callback and IPN URLs
+# PESAPAL_CALLBACK_URL=https://yourdomain.com/pesapal/callback
+# PESAPAL_IPN_URL=https://yourdomain.com/pesapal/ipn

@@ -1,0 +1,522 @@
+Pesapal API 3.0
+Welcome to Pesapal API 3.0. Getting started with Pesapal is quick and easy!
+
+In this release, you will learn how to use our API endpoints to access Pesapal services. Our APIs are built on REST(Representational State Transfer) thus our data entities are represented as HTTP resources and are accessed using HTTP verbs GET and POST. Requests and responses are JSON encoded.
+
+Find information about integrating your website with Pesapal. This documentation includes sample codes for each API we have.
+
+Postman URL: https://documenter.getpostman.com/view/6715320/UyxepTv1
+
+Base URLs
+Environment	URL
+Sandbox	https://cybqa.pesapal.com/pesapalv3
+Live	https://pay.pesapal.com/v3
+Error Object
+In case an error occurs during any API call, Pesapal will respond with a json string in the following format : -
+
+1
+{
+2
+    "error": {
+3
+        "type": "error_type",
+4
+        "code": "response_code",
+5
+        "message": "Detailed error message goes here.."
+6
+    }
+7
+}
+
+
+Authentication Endpoint - Post Request
+Pesapal's API Authentication requests are done via a POST request.
+
+Your Pesapal merchant consumer_key and consumer_secret will be used to generate an access token.
+
+This access token is valid for a maximum period of 5 minutes. Use this token (sent as a Bearer Token) to access all other Pesapal API 3.0 endpoints.
+
+The URL to our token generation API is either:
+
+Sandbox/Demo URL: https://cybqa.pesapal.com/pesapalv3/api/Auth/RequestToken
+Production/Live URL: https://pay.pesapal.com/v3/api/Auth/RequestToken
+HTTP request headers
+Accept: The response format, which is required for operations with a response body.
+Content-Type: The request format, which is required for operations with a request body.
+
+Parameter	Required	Description
+Accept	Required	Should be set to application/json
+Content-Type	Required	Should be set to application/json
+
+Request Parameters
+Your live/production consumer_key and consumer_secret will be sent to your merchant email on opening a business/merchant account.
+
+Please click here to open a live/production business account.
+
+Click here to download test credentials to use while connecting to our demo/sandbox API.
+Parameter	Type	Required	Description
+consumer_key	String	Required	The consumer_key parameter must be set to merchant consumer_key
+consumer_secret	String	Required	The consumer_secret parameter must be set to merchant consumer_secret.
+
+Sample Request
+1
+{
+2
+    "consumer_key": "xxxxx",
+3
+    "consumer_secret": "xxxxxx"
+4
+}
+
+Response Parameters
+
+Name	Type	Description
+token	String	The access token string as issued by the server. The access token issued will have permission to invoke all Pesapa API operations.
+expiryDate	String	Date and time the token will expire. The access token usually expires after 5mins - UTC
+error	Object	Error object
+status	String	Response code
+message	String	A brief description about the response received.
+
+Sample Response
+view sourceprint?
+1
+{
+2
+    "token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYa",
+3
+    "expiryDate": "2021-08-26T12:29:30.5177702Z",
+4
+    "error": null,
+5
+    "status": "200",
+6
+    "message": "Request processed successfully"
+7
+}   
+
+IPN URL Registration Endpoint - Post Request
+IPN stands for Instant Payment Notification. When a payment is made against a transaction, Pesapal will trigger an IPN call to the notification URL related to this transaction. This notification URL is usually located on your servers. These notifications allows you to be alerted in real time whenever there is a status change for any transaction.
+
+An IPN is particular important as it allows you to be notified incase the following happens:
+
+Your client gets disconnected after payment due to internet issues
+Your client experiences server errors hence Pesapal and your application gets disconnected before callback URL is loaded.
+Your client exits your application / closes the browser during payment.
+The transaction is rejected.
+As such, it's mandatory to have IPN configured to allow Pesapal to notify your servers when a status changes. It's also important to note that this IPN URL must be publicly available. In cases where you have strict server rules preventing external systems reaching your end, you must then whitelist all calls from our domain (pesapal.com). Please be informed that IP whitelisting is not feasible as our IP may change without notice.
+
+Before sending Submit Order Requests to Pesapal API 3.0, you are expected to register your IPN URL. Upon registration, you receive an IPN ID which is a mandatory field (notification_id) when submitting an order request to Pesapal API 3.0. This notification_id uniquely identifies the endpoint Pesapal will send alerts to whenever a payment status changes for each transaction processed via API 3.0
+
+The URL to our IPN registration API is either:
+
+Sandbox/Demo URL: https://cybqa.pesapal.com/pesapalv3/api/URLSetup/RegisterIPN
+Production/Live URL: https://pay.pesapal.com/v3/api/URLSetup/RegisterIPN
+Authentication
+Bearer Token : Use token generated during authentication.
+
+HTTP request headers
+Accept: The response format, which is required for operations with a response body.
+Content-Type: The request format, which is required for operations with a request body.
+
+Parameter	Required	Description
+Accept	Required	Should be set to application/json
+Content-Type	Required	Should be set to application/json
+
+Request Parameters
+
+Parameter	Type	Required	Description
+url	String	Required	The notification url Pesapal with send a status alert to.
+ipn_notification_type	String	Required	GET or POST. This is the http request method Pesapal will use when triggering the IPN alert.
+
+Sample Request
+1
+{
+2
+    "url": "https://www.myapplication.com/ipn",
+3
+    "ipn_notification_type": "GET"
+4
+}
+
+Response Parameters
+Name	Description
+url	The notification url Pesapal will send a status alert to.
+created_date	Date and time the IPN URL was registered UTC
+ipn_id	A unique identifier that's linked to the IPN endpoint URL. GUID
+notification_type	1 or 0
+ipn_notification_type_description	The http request method you registered your IPN url as
+ipn_status	1 or 0 ie Active or Inactive
+ipn_status_decription	Status description ie Active or Inactive
+error	An error object containing error_type, code and message if any. Null to signify no error.
+status	Response code.
+
+Sample Response
+01
+{
+02
+    "url": "https://myapplication.com/ipn",
+03
+    "created_date": "2024-06-14T07:50:22.2825997Z",
+04
+    "ipn_id": "84740ab4-3cd9-47da-8a4f-dd1db53494b5",
+05
+    "notification_type": 0,
+06
+    "ipn_notification_type_description": "GET",
+07
+    "ipn_status": 1,
+08
+    "ipn_status_description": "Active",
+09
+    "error": null,
+10
+    "status": "200"
+11
+}
+
+You can also use our online forms below to register your IPN URLs.
+
+- Sandbox/Demo IPN Registration Form
+- Production/Live IPN Registration Form
+
+Get Registered IPNs Endpoint - Get Request
+This endpoint allows you to fetch all registered IPN URLs for a particular Pesapal merchant account.
+
+The URL to our GetIPNList API is either:
+
+Sandbox/Demo URL: https://cybqa.pesapal.com/pesapalv3/api/URLSetup/GetIpnList
+Production/Live URL: https://pay.pesapal.com/v3/api/URLSetup/GetIpnList
+Authentication
+Bearer Token : Use token generated during authentication.
+
+Request
+No payload is required.
+
+Response Parameters
+
+Name	Type	Description
+url	String	The notification url Pesapal with send a status alert to.
+created_date	String	Date and time the IPN URL was registered UTC
+ipn_id	String	A unique identifier that's liked to the IPN endpoint URL. GUID
+error	Integer	
+status	String	Response code.
+
+Sample Response
+view sourceprint?
+01
+[
+02
+    {
+03
+        "url": "https://www.myapplication.com/ipn",
+04
+        "created_date": "2022-03-03T17:29:03.7208266Z",
+05
+        "ipn_id": "e32182ca-0983-4fa0-91bc-c3bb813ba750",
+06
+        "error": null,
+07
+        "status": "200"
+08
+    },
+09
+    {
+10
+        "url": "https://ipn.myapplication.com/application2",
+11
+        "created_date": "2021-12-05T04:23:45.5509243Z",
+12
+        "ipn_id": "c3bb813ba750-0983-4fa0-91bc-e32182ca",
+13
+        "error": null,
+14
+        "status": "200"
+15
+    }
+16
+]
+
+Submit Order Request Endpoint - Post Request
+Once you have received the bearer token, the next step will be the actual request to create a payment request.
+
+A good example would be a case where the customer has clicked pay now button on your website. At this point, you call the SubmitOrderRequest and in return you will get a response which contains a payment redirect URL which you then redirect the customer to or load the URL as an iframe within your site in case you don’t want to redirect the customer off your application.
+
+The payment URL will contain the payment methods presented to the customer by Pesapal. After the customer has made the payment, they will be redirected to your callback URL which you will have already provided to us as part of submit order request.
+
+The URL to our SubmitOrderRequest API is either:
+
+Sandbox/Demo URL: https://cybqa.pesapal.com/pesapalv3/api/Transactions/SubmitOrderRequest
+Production/Live URL: https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest
+Authentication
+Bearer Token : Use token generated during authentication.
+
+HTTP request headers
+Accept: The response format, which is required for operations with a response body.
+Content-Type: The request format, which is required for operations with a request body.
+
+Parameter	Required	Description
+Accept	Required	Should be set to application/json
+Content-Type	Required	Should be set to application/json
+
+Request Parameters
+
+Parameter	Type	Required	Description
+id	String	Required	This refers to your unique merchant reference generated by your system. NOTE: It should be unique at all times for every order request. Maximum - 50 characters
+currency	String	Required	This represents the currency you want to charge your customers. ISO Currency Codes
+amount	Float	Required	Amount to be processed.
+description	String	Required	Represents the description of your order. Maximum - 100 characters
+redirect_mode	String	Optional	Accepts values TOP_WINDOW or PARENT_WINDOW.
+If left blank, the default value used will be TOP_WINDOW.
+
+This parameter allows you to define where your callback URL will be loaded;
+- TOP_WINDOW returns to the topmost window in the hierarchy of windows.
+- PARENT_WINDOW returns the immediate parent of a window.
+callback_url	String	Required	A valid URL which Pesapal will redirect your clients to processing the payment.
+cancellation_url	String	Optional	A valid URL which Pesapal will redirect your clients to incase they click on cancel request while on the Payment link.
+
+If provided, a cancellation link will appear next to the PROCEED button.
+notification_id	Guid	Required	This represents an IPN URL which Pesapal will send notifications to after payments have been processed.
+
+You are required to register all IPN URLs after which a corresponding notification_id will be generated. Please refer to the IPN URL registration endpoint.
+branch	String	Optional	If your business has multiple stores / branches, you can define the name of the store / branch to which this particular payment will be accredited to.
+billing_address	Object	Required	Customer Address Object
+Customer Address Object
+
+Name	Type	Required	Description
+phone_number	String	Optional if email address is provided.
+Mandatory if email address is NOT provided.	Customer's phone number
+email_address	String	Optional if phone number is provided.
+Mandatory if phone number is NOT provided.	Customer's email address
+country_code	String	Optional	2 characters long country code in [ISO 3166-1](https://en.wikipedia.org/wiki/ISO_3166-1)
+first_name	String	Optional	Customer's first name
+middle_name	String	Optional	Customer's middle name
+last_name	String	Optional	Customer's last name
+line_1	String	Optional	Customer's main address
+line_2	String	Optional	Customer's alternative address
+city	String	Optional	Customer's city
+state	String	Optional	Customer's state Maximum - 3 characters
+postal_code	Integer	Optional	Customer's postal code
+zip_code	Integer	Optional	Customer's zip code
+
+Sample Request
+01
+{
+02
+    "id": "AA1122-3344ZZ",
+03
+    "currency": "KES",
+04
+    "amount": 100.00,
+05
+    "description": "Payment description goes here",
+06
+    "callback_url": "https://www.myapplication.com/response-page",
+07
+    "redirect_mode": "",
+08
+    "notification_id": "fe078e53-78da-4a83-aa89-e7ded5c456e6",
+09
+    "branch": "Store Name - HQ",
+10
+    "billing_address": {
+11
+        "email_address": "john.doe@example.com",
+12
+        "phone_number": "0723xxxxxx",
+13
+        "country_code": "KE",
+14
+        "first_name": "John",
+15
+        "middle_name": "",
+16
+        "last_name": "Doe",
+17
+        "line_1": "Pesapal Limited",
+18
+        "line_2": "",
+19
+        "city": "",
+20
+        "state": "",
+21
+        "postal_code": "",
+22
+        "zip_code": ""
+23
+    }
+24
+}   
+
+After successfully creating the order, your response will contain a payment URL (redirect_url).
+
+Status 200 mean your request to process the payment has been received successfully meaning the order has been successfully created on our systems and you can now redirect your customer to make the payment.
+
+Response Parameters
+
+Name	Type	Description
+order_tracking_id	String	Unique order id generated by Pesapal.
+merchant_reference	String	Your application's unique ID received as part of the SUBMIT ORDER REQUEST.
+redirect_url	String	URL generated that contains the payment instructions. Redirect to this URL or load it within an iframe
+error	Integer	
+message	String	Response message.
+
+Sample Response
+1
+{
+2
+    "order_tracking_id": "b945e4af-80a5-4ec1-8706-e03f8332fb04",
+3
+    "merchant_reference": "TEST1515111119",
+4
+    "redirect_url": "https://cybqa.pesapal.com/pesapaliframe/PesapalIframe3/Index/?OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04",
+5
+    "error": null,
+6
+    "status": "200"
+7
+}
+Redirecting your customer to this redirect_url will present them with a list of available payment methods which they can use to make the payment.
+
+You can either load this URL outside or within your website (using an Iframe). The advantage of using an iframe is that your customer will not be redirected off the site, hence a seamless payment process.
+
+Once your customer selects their preferred payment method and makes a payment, Pesapal will process the payment and redirect your customers to the callback URL which you had provided as part of the SubmitOrderRequest API call.
+
+Callback Details
+The following parameter will be appended to your callback URL.
+
+Parameter	Type	Description
+OrderTrackingId	String	Unique order id generated by Pesapal.
+OrderNotificationType	String	Has value CALLBACKURL to represent a callback request
+OrderMerchantReference	String	Your application's unique ID received as part of the SUBMIT ORDER REQUEST.
+
+Sample Callback URL: https://www.myapplication.com/response-page?OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04&OrderMerchantReference=TEST1515111119&OrderNotificationType=CALLBACKURL
+
+IPN Details
+At the same time, Pesapal will send an alert to your IPN URL informing you of a status change.
+
+The IPN alert will either be a GET or POST request, depending on which HTTP method you selected when registering the IPN URL.
+
+The IPN call will have the following parameters;
+
+Parameter	Type	Description
+OrderTrackingId	String	Unique order id generated by Pesapal.
+OrderNotificationType	String	Has value IPNCHANGE to represent an IPN call.
+OrderMerchantReference	String	Your application's unique ID received as part of the SUBMIT ORDER REQUEST.
+Sample GET URL
+https://www.myapplication.com/response-page?OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04&OrderMerchantReference=TEST1515111119&OrderNotificationType=IPNCHANGE
+
+Sample POST data
+1
+{
+2
+    "OrderNotificationType":"IPNCHANGE",
+3
+    "OrderTrackingId":"b945e4af-80a5-4ec1-8706-e03f8332fb04",
+4
+    "OrderMerchantReference":"TEST1515111119"
+5
+}
+The callback URL and the IPN calls will NOT have the status of the payment for security reasons. As such, you will be required to fetch the status of the payment using the GetTransactionStatus API once the callback page is loaded and when the IPN URL is triggered.
+
+Get Transaction Status Endpoint - Get Request
+Once Pesapal redirect your customer to your callback URL and triggers your IPN URL, you need to check the status of the payment using the OrderTrackingId.
+
+The URL to our GetTransactionStatus API is either:
+
+Sandbox/Demo URL: https://cybqa.pesapal.com/pesapalv3/api/Transactions/GetTransactionStatus?orderTrackingId=xxxxxxxxxxxx
+Production/Live URL: https://pay.pesapal.com/v3/api/Transactions/GetTransactionStatus?orderTrackingId=xxxxxxxxxxxx
+Where xxxxxxxxxxxx represents the OrderTrackingId received as part of the callback [GET] or IPN [POST/GET] params.
+
+Authentication
+Bearer Token : Use token generated during authentication.
+
+HTTP request headers
+Accept: The response format, which is required for operations with a response body.
+Content-Type: The request format, which is required for operations with a request body.
+
+Parameter	Required	Description
+Accept	Required	Should be set to application/json
+Content-Type	Required	Should be set to application/json
+
+Request Parameters
+
+Parameter	type	Required	Description
+orderTrackingId	string	Required	Unique order id generated by Pesapal e.g 7e6b62d9-883e-440f-a63e-e1105bbfadc3. Attached as a query parameter to the getTransactionStatus endpoint to get status of your submitted order.
+Response Parameters
+
+Name	Description
+payment_method	This refers to the payment method used by your customers to make payment. Can be through CARD, MPESA, MTN, TIGO etc.
+amount	Amount paid by the customer.
+created_date	Date the payment was made.
+confirmation_code	Confirmation code received from the payment provider used.
+payment_status_description	Contains the status of the transaction. This will include either INVALID, FAILED, COMPLETED or REVERSED.
+description	Description of the payment status.
+message	The message shows if transaction request status was processed successfully or not.
+payment_account	Masked card number or phone number used during payment.
+call_back_url	A valid URL which Pesapal will redirect the client to after payment is made.
+status_code	Pesapal status code representing the payment_status_description.
+0 - INVALID
+1 - COMPLETED
+2 - FAILED
+3 - REVERSED
+merchant_reference	Your application's unique ID as received in the SubmitOrderRequest call.
+currency	Currency the payment was made in. ISO Currency Codes.
+error	An error object containing error_type, code, message and call_back_url.
+status	HTTP status code as defined on RFC 2616. A status of 200 means the request was successful.
+
+Sample Response
+01
+{
+02
+    "payment_method": "Visa",
+03
+    "amount": 100,
+04
+    "created_date": "2022-04-30T07:41:09.763",
+05
+    "confirmation_code": "6513008693186320103009",
+06
+    "payment_status_description": "Failed",
+07
+    "description": "Unable to Authorize Transaction.Kindly contact your bank for assistance",
+08
+    "message": "Request processed successfully",
+09
+    "payment_account": "476173**0010",
+10
+    "call_back_url": "https://test.com/?OrderTrackingId=7e6b62d9-883e-440f-a63e-e1105bbfadc3&OrderMerchantReference=1515111111",
+11
+    "status_code": 2,
+12
+    "merchant_reference": "1515111111",
+13
+    "payment_status_code": "",
+14
+    "currency": "KES",
+15
+    "error": {
+16
+        "error_type": null,
+17
+        "code": null,
+18
+        "message": null,
+19
+        "call_back_url": null
+20
+    },
+21
+    "status": "200"
+22
+}   
+
+What Next?
+Once you've received the payment details, you are then required to store the same in your system and provide services / services paid for.
+
+Your IPN endpoint should then respond to Pesapal with a json string confirming receipt of the IPN call. Part of the json string contains a status parameter that should be set as 200 (meaning request was received and processed) or 500 (meaning IPN request was received but there was an issue completing the process).
+
+Sample IPN JSON Response String: {"orderNotificationType":"IPNCHANGE","orderTrackingId":"d0fa69d6-f3cd-433b-858e-df86555b86c8","orderMerchantReference":"1515111111","status":200}
+
+NB: Your callback page should not implement a json response. Instead, redirect the customer to a page on your system showing the payment details.
