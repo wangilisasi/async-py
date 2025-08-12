@@ -520,3 +520,389 @@ Your IPN endpoint should then respond to Pesapal with a json string confirming r
 Sample IPN JSON Response String: {"orderNotificationType":"IPNCHANGE","orderTrackingId":"d0fa69d6-f3cd-433b-858e-df86555b86c8","orderMerchantReference":"1515111111","status":200}
 
 NB: Your callback page should not implement a json response. Instead, redirect the customer to a page on your system showing the payment details.
+
+
+Recurring / Subscription Based Payments
+Definitions
+Recurring payment is a payment model where customers authorize the business to pull funds from their accounts automatically at regular intervals for the goods and services provided to them on an ongoing basis.
+
+With Pesapal's subscription based payments, customers can set automated card payments on their account where they can be debited automatically at a different set times. Examples of services one can enroll to include cable bills, cell phone bills, gym membership fees, utility bills and magazine subscriptions. These payments can be set to run an various intervals such as daily, weekly, monthly or yearly.
+
+How can recurring payments benefit your business?
+Saves customers time: Customers no longer have to go through the payment process every time they need to make a payment.
+Ensures prompt payment: Businesses no longer need to worry about getting paid on time. Since the payments are automated, they no longer need to send out overdue payment reminders.
+Boosts customer loyalty: With a subscription model, businesses can form closer relationships with their customers.
+Cash flow prediction: Businesses can easily predict their cash flow, which helps with business strategy.
+Lowers billing and collection costs: Businesses no longer need to chase after missed payments, freeing up their time to concentrate on other elements of the business.
+How do i enable recurring payment for my customers?
+Enable our subscription based payments by passing an additional account_number field when sending data to our SubmitOrderRequest endpoint. This account_number should relate to an account number / invoice number that helps you identify the payment.
+
+Note: It's critical that you get to understand all other Pesapal API 3.0 endpoints before implementing the recurring feature. Click here to get started.
+
+In adition to the SubmitOrderRequest parameters, include one more param as show below.
+
+Parameter	Required	Description
+account_number	Optional	Customer's identification number know to your system. This can be an invoice number or an account number.
+
+Sample Request
+01
+{
+02
+    "id": "AA1122-3344ZZ",
+03
+    "currency": "KES",
+04
+    "amount": 100.00,
+05
+    "description": "Payment description goes here",
+06
+    "callback_url": "https://www.myapplication.com/response-page",
+07
+    "notification_id": "fe078e53-78da-4a83-aa89-e7ded5c456e6",
+08
+    "billing_address": {
+09
+        "email_address": "john.doe@example.com",
+10
+        "phone_number": "0723xxxxxx",
+11
+        "country_code": "KE",
+12
+        "first_name": "John",
+13
+        "middle_name": "",
+14
+        "last_name": "Doe",
+15
+        "line_1": "Pesapal Limited",
+16
+        "line_2": "",
+17
+        "city": "",
+18
+        "state": "",
+19
+        "postal_code": "",
+20
+        "zip_code": ""
+21
+    },
+22
+    "account_number": "555-678"
+23
+}   
+After successfully processing your request using the SubmitOrderRequest endpoint, the customer will be shown an option to opt into the recurring model on the Pesapal iframe during payment. The customer will then configure the frequency (Daily, weekly, monthly, quarterly or yearly), set a start and enddate, and finally enter an amount to be automatically deducted from their card on each payment cycle.
+
+Pesapal Recurring Form
+Once the customer has made a successful payment, Pesapal will automatically create a scheduled subscription on their behalf and an email alert will be sent to the provided card billing email that was used during the payment proccess, notifying them of the newly created subscription together with a link they can access a dashboard to manage their subscription.
+
+Pesapal will NOT store the customer's card details. Instead, Pesapal has implemented the card tokenization technology.
+
+Credit card tokenization is the process of de-identifying sensitive cardholder data by converting it to a string of randomly generated numbers called a "token." Similar to encryption, tokenization obfuscates the original data to render it unreadable to a user. Unlike encryption, however, credit card tokenization is irreversible.
+
+Is it possible to send the extra subscription parameters (Frequency, amount, period) via the API?
+Yes, in cases where your application already handles the process where the customer opts into a subscription based model from your application, Pesapal allows your to send these extra parameters via the API. This ensures that the user does not have to fill in the same details again (on your application and on the Pesapal Iframe).
+
+However, it's important to note that the customer MUST accept to enroll to your subscription on the iframe. They will however not be able to edit the subscription details on the iframe.
+
+
+In adition to the account_number parameter included in the SubmitOrderRequest, you are required to send the following parameter.
+
+Parameter	Required	Description
+subscription_details	Optional	Customer Subscription Object You can pass subscription data to Pesapal allowing a user to setup recurring payment..
+Subscription Object
+
+Name	Type	Required	Description
+start_date	String	Mandatory	Your subscription's start date in the format dd-MM-yyyy e.g 24-01-2023 representing 24th Jan 2023
+end_date	String	Mandatory	Your subscription's end date in the format dd-MM-yyyy e.g 31-12-2023 represeting 31st Dec 2023
+frequency	String	Mandatory	The period billed to the account is set out in the user contract. For instance, if users subscribe to a monthly service. Accepted values include DAILY, WEEKLY, MONTHLY or YEARLY
+
+Sample Request
+01
+{
+02
+    "id": "AA1122-3344ZZ",
+03
+    "currency": "KES",
+04
+    "amount": 100.00,
+05
+    "description": "Payment description goes here",
+06
+    "callback_url": "https://www.myapplication.com/response-page",
+07
+    "notification_id": "fe078e53-78da-4a83-aa89-e7ded5c456e6",
+08
+    "billing_address": {
+09
+        "email_address": "john.doe@example.com",
+10
+        "phone_number": "0723xxxxxx",
+11
+        "country_code": "KE",
+12
+        "first_name": "John",
+13
+        "middle_name": "",
+14
+        "last_name": "Doe",
+15
+        "line_1": "Pesapal Limited",
+16
+        "line_2": "",
+17
+        "city": "",
+18
+        "state": "",
+19
+        "postal_code": "",
+20
+        "zip_code": ""
+21
+    },
+22
+    "account_number": "555-678",
+23
+    "subscription_details": {
+24
+        "start_date": "24-01-2023",
+25
+        "end_date": "31-12-2023",
+26
+        "frequency": "DAILY"
+27
+    }
+28
+}   
+After successfully processing your request using the SubmitOrderRequest endpoint, the customer will be shown an option to opt into the recurring model on the Pesapal iframe during payment. The iframe will this time load without he options to re-select the Frequecy, period and dates.
+
+Pesapal Recurring Form
+
+Can a customer opt out of recurring payments before the end date?
+Yes, customers have the right to cancel their subscription at anytime. Pesapal will send them email alerts a day or two prior to charging their cards. This ensures customers are always aware of all upcoming charges giving them the freedom to opt out or pausing their subscriptions.
+
+Which cards are currently supported?
+We currently support Visa and MasterCard for recurring payments. More card options will be enabled in the near future.
+
+How will Pesapal alert my business about successful recurring payments?
+Once a schedule is created and executed successfully, Pesapal will trigger an IPN (Instant Payment Notification) to the IPN endpoint you provided when calling the SubmitOrderRequest endpoint. This IPN call will have the OrderNotificationTypei> set as RECURRING.
+
+Sample IPN URL: https://www.myapplication.com/response-page?OrderTrackingId=b945e4af-80a5-4ec1-8706-e03f8332fb04&OrderMerchantReference=555-678&OrderNotificationType=RECURRING
+
+Recurring IPN Details
+The IPN alert will either be a GET or POST request, depending on which HTTP method you selected when registering the IPN URL. Click here for more details on how to register your IPN endpoint.
+
+The IPN call will have the following parameters;
+
+Parameter	Type	Description
+OrderTrackingId	String	Unique order id generated by Pesapal.
+OrderNotificationType	String	Value set as RECURRING to represent a Recurring IPN call.
+OrderMerchantReference	String	Your account number received as part of the SUBMIT ORDER REQUEST.
+
+The IPN call will NOT have all details of the payment for security reasons. As such, you will be required to fetch the payment using the GetTransactionStatus API once the IPN URL is triggered.
+In addition to the normal payment status details received from the GetTransactionStatus endpoint, Pesapal will append an object subscription_transaction_info containing some additional recurring payment data
+
+Recurring Payments Extra Data (subscription_transaction_info)
+
+Name	Description
+account_reference	Customer's identification number know to your system. This can be an invoice number or an account number.
+amount	Amount paid by the customer.
+first_name	Customer's first name.
+last_name	Customer's last name.
+correlation_id	Pesapal's unique recurring payment identifier / id.
+
+Sample Response
+01
+{
+02
+    "payment_method": "Visa",
+03
+    "amount": 100,
+04
+    "created_date": "2022-04-30T07:41:09.763",
+05
+    "confirmation_code": "6513008693186320103009",
+06
+    "payment_status_description": "Failed",
+07
+    "description": "Unable to Authorize Transaction.Kindly contact your bank for assistance",
+08
+    "message": "Request processed successfully",
+09
+    "payment_account": "476173**0010",
+10
+    "call_back_url": "https://test.com/?OrderTrackingId=7e6b62d9-883e-440f-a63e-e1105bbfadc3&OrderMerchantReference=555-678",
+11
+    "status_code": 2,
+12
+    "merchant_reference": "1515111111",
+13
+    "payment_status_code": "",
+14
+    "currency": "KES",
+15
+    "subscription_transaction_info": {
+16
+        "account_reference": "555-678",
+17
+        "amount": 100,
+18
+        "first_name": "John",
+19
+        "last_name": "Doe",
+20
+        "correlation_id": 111222
+21
+    },
+22
+    "error": {
+23
+        "error_type": null,
+24
+        "code": null,
+25
+        "message": null,
+26
+        "call_back_url": null
+27
+    },
+28
+    "status": "200"
+29
+}   
+What Next?
+Once you've fetched the recurring data, you are then required to store the same in your system and provide services / goods as subscribed.
+
+Your IPN endpoint should then respond to Pesapal with a json string confirming service delivery. Part of the json string contains a status parameter that should be set as 200 (meaning request was received and processed) or 500 (meaning request was received but there was an issue providing the services).
+
+Sample JSON Response String: {"orderNotificationType":"RECURRING","orderTrackingId":"d0fa69d6-f3cd-433b-858e-df86555b86c8","orderMerchantReference":"555-678","status":200}
+
+NB: Constant complains from your customers about service / goods not delivered which were paid using recurring / subscription based payment mode will lead to the subscriptions being terminated and your profile banned from using the feature.
+
+Refund Request
+Definitions
+The refund request endpoint allow you to refund a charge that has previously been processed but not yet refunded. Funds will be refunded to the credit / debit card or mobile money wallet that was originally charged.
+
+The ability to process a refund has the following limitations:
+
+A refund has to be approved by the merchant.
+You can't refund more than what was originally collected.
+You can only refund payments with the status of COMPLETED.
+You can partially or fully refund a payment card payment.
+You can only fully refund a payment mobile payment.
+Refunds are performed in the currency of the original payment.
+Multiple refunds are not allowed. You can only request one refund against a payment.
+The URL to our RequestRefund API is either:
+
+Sandbox/Demo URL: https://cybqa.pesapal.com/pesapalv3/api/Transactions/RefundRequest
+Production/Live URL: https://pay.pesapal.com/v3/api/Transactions/RefundRequest
+Authentication
+Bearer Token : Use token generated during authentication.
+
+HTTP request headers
+Accept: The response format, which is required for operations with a response body.
+Content-Type: The request format, which is required for operations with a request body.
+
+Parameter	Required	Description
+Accept	Required	Should be set to application/json
+Content-Type	Required	Should be set to application/json
+
+Request Parameters
+
+Parameter	Type	Required	Description
+confirmation_code	String	Required	This refers to payment confirmation code that was returned by the processor
+amount	Float	Required	Amount to be refunded.
+username	String	Required	Identity of the user who has initiated the refund.
+remarks	String	Required	A brief description on the reason for the refund.
+Sample Request
+1
+{
+2
+    "confirmation_code": "AA11BB22",
+3
+    "amount": "100.00",
+4
+    "username": "John Doe",
+5
+    "remarks": "Service not offered"
+6
+}   
+After successfully placing a refund request, a request will be sent to our finance team to start processing the refund.
+
+Response Parameters
+
+Name	Type	Description
+error	Integer	200 - Refund received successfully and is being processed. 500 - Refund rejected.
+message	String	A brief summary of the response received.
+Status 200 mean your request to process the refund has been received successfully. However, please note that this does not mean the refund has been effected. Pesapal has to get the go ahead from the merchant before finalising the refund.
+
+Status 500 mean your request to process the refund was rejected for one reason or another. Refer to the error message for more details.
+
+Sample Response
+1
+{
+2
+    "status": "200",
+3
+    "message": "Refund request successfully"
+4
+} 
+The refund API uses the confirm code for identification. It's important that you store all payment confirmation codes as returned in the Get Transaction Status Endpoint
+
+Order Cancellation API
+Definitions
+The Order Cancellation API enables you to revoke a previously placed order request that remains incomplete on our end. This API facilitates the cancellation of orders that have encountered failures or are pending transactions.
+
+However, there are certain constraints associated with cancelling a prior request:
+
+Cancellation is exclusively supported for failed or pending payments.
+A cancellation request can only be submitted once.
+Cancellation is not allowed for payments that have already been processed.
+You can access our Cancel Order API via the endpoints provided below:
+
+Sandbox/Demo URL: https://cybqa.pesapal.com/pesapalv3/api/Transactions/CancelOrder
+Production/Live URL:https://pay.pesapal.com/v3/api/Transactions/CancelOrder
+Authentication
+Bearer Token :Use token generated during authentication.
+
+HTTP request headers
+Accept: The response format, which is required for operations with a response body.
+Content-Type: The request format, which is required for operations with a request body.
+
+Parameter	Required	Description
+Accept	Required	Should be set to application/json
+Content-Type	Required	Should be set to application/json
+
+Request Parameters
+
+Parameter	Type	Required	Description
+order_tracking_id	Guid	Required	This refers to the original Pesapal Order tracking ID that was returned after submitting your order request earlier during the initial submit order request api call.
+Sample Request
+1
+{
+2
+    "order_tracking_id": "xxxxxxxxxxxxxxxxxxxxxxx"
+3
+}   
+After successfully cancelling the request, the order shall be cancelled on our systems preventing a customer from making further payments to an already cancelled order.
+
+Response Parameters
+
+Name	Type	Description
+status	message	200 – Order Successfully cancelled. 500 – Order could not be cancelled.
+message	String	A summary of the response received.
+
+Status 200 mean your request to cancel the order has been processed successfully.
+
+Status 500 mean your request to cancel your order has failed due to one or more reasons as shared earlier on the introduction page above.
+
+Sample Response
+1
+{
+2
+    "status": "200",
+3
+    "message": "Order successfully cancelled."
+4
+} 
+The Order Cancellation API uses the Pesapal Order Tracking ID to cancel the order. It's important that you store the Pesapal Order Tracking ID that is sent back to your system during your initial order placement stage i.e. on the submit order request endpoint.
